@@ -1,0 +1,269 @@
+<html>
+
+<head>
+    <title>Example 01.03 - Materials and light</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+    <script type="text/javascript" src="../libs/jquery-1.9.0.js"></script>
+    <script type="text/javascript" src="../libs/TrackballControls.js"></script>
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Div which will hold the Output -->
+    <div id="WebGL-output">
+    </div>
+
+    <!-- Javascript code that runs our Three.js examples -->
+    <script type="text/javascript">
+
+        // once everything is loaded, we run our Three.js stuff.
+        $(function () {
+
+            // create a scene, that will hold all our elements such as objects, cameras and lights.
+            var scene = new THREE.Scene();
+
+            // create a camera, which defines where we're looking at.
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            // create a render and set the size
+            var renderer = new THREE.WebGLRenderer();
+
+            renderer.setClearColor(0xEEEEEE, 1.0);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMapEnabled = true;
+
+            // axes helper
+            // var axes = new THREE.AxisHelper( 20 );
+            // scene.add(axes);
+
+
+            // create the ground plane
+            var planeGeometry = new THREE.PlaneGeometry(60, 20);
+            var planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff , transparent: true, opacity: 0.5 });
+            var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.receiveShadow = true;
+
+            // rotate and position the plane
+            plane.rotation.x = -0.5 * Math.PI;
+            plane.position.x = 15
+            plane.position.y = 0
+            plane.position.z = 0
+
+            // add the plane to the scene
+            scene.add(plane);
+
+            var plane2 = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane2.receiveShadow = true;
+
+            // rotate and position the plane
+            plane2.rotation.x = -0.5 * Math.PI;
+            plane2.position.x = 15
+            plane2.position.z = 0
+
+            // create cube
+            var radius = 10;
+            var spaceBetween = 2;
+            var stepThickness = 0.5;
+            var smallerWidth = 1.5;
+            var biggerWidth = 2.5;
+            var roomHeight = 15 * stepThickness;
+            var stepWidth = 2.5;
+            var stepOffset = 2;
+
+            var step, box, i, cylinder;
+
+            // stairs
+            const rightShape = new THREE.Shape();
+            rightShape.moveTo(0, 0);
+            rightShape.lineTo(radius * 0.5, 0);
+            rightShape.lineTo(radius * 0.5, smallerWidth);
+            rightShape.lineTo(radius * 0.5 / 2, smallerWidth + (biggerWidth - smallerWidth) * 0.1);
+            rightShape.lineTo(0, smallerWidth + (biggerWidth - smallerWidth) * 0.4);
+            rightShape.lineTo(radius * -0.5, biggerWidth);
+            rightShape.lineTo(radius * -0.5, 0);
+            rightShape.lineTo(0, 0);
+
+            const leftShape = new THREE.Shape();
+            leftShape.moveTo(0, 0);
+            leftShape.lineTo(radius * 0.5, 0);
+            leftShape.lineTo(radius * 0.5, biggerWidth);
+            leftShape.lineTo(radius * 0.5 / 2, biggerWidth - (biggerWidth - smallerWidth) * 0.1);
+            leftShape.lineTo(0, biggerWidth - (biggerWidth - smallerWidth) * 0.4);
+            leftShape.lineTo(radius * -0.5, smallerWidth);
+            leftShape.lineTo(radius * -0.5, 0);
+            leftShape.lineTo(0, 0);
+
+            const extrudeSettings = {
+                steps: 2,
+                depth: stepThickness,
+                bevelEnabled: true,
+                bevelThickness: 0.25,
+                bevelSize: 0.1,
+                bevelOffset: 0,
+                bevelSegments: 0.5
+            };
+
+
+            const material = new THREE.MeshLambertMaterial({ color: "rgb(186, 140, 48)" });
+
+            //constructions
+            const width = 0.5;
+            const cubeThickness = 0.75;
+
+            const cubeGeometry = new THREE.CubeGeometry(radius, stepThickness, stepWidth);
+            const cubeMaterial = new THREE.MeshLambertMaterial({ color: "brown" });
+            const cylinderGeometry = new THREE.CylinderGeometry(width, width, stepThickness* spaceBetween - 0.01, 32);
+            const cylinderMaterial = new THREE.MeshBasicMaterial({ color: "rgb(125, 115, 122)" });
+            const constructionCubeGeometry = new THREE.CubeGeometry(width, cubeThickness, stepWidth - 0.2);
+            const constructionCubeMaterial = new THREE.MeshLambertMaterial({ color: "rgb(125, 115, 122)" });
+
+            const curveMaterial = new THREE.MeshPhongMaterial({ color: "rgb(125, 115, 122)" });
+
+            const curvePoints = [new THREE.Vector3(-radius, (0.5) * stepThickness * spaceBetween + 5, stepWidth / 2 - 2)];
+
+            cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+            constructionBox = new THREE.Mesh(constructionCubeGeometry, constructionCubeMaterial);
+            cylinder.position.x = -0.5 * radius;
+            cylinder.position.z = (0.3) * stepWidth;
+            cylinder.position.y = stepThickness * 0.5 - 0.2;
+
+            constructionBox.position.x = -0.51 * radius;
+            constructionBox.position.z = (0.7) * stepWidth;
+            constructionBox.position.y = stepThickness - width;
+            constructionBox.rotation.y = Math.atan(2.5 / 20);
+
+            // setup the control gui
+            var options = new function () {
+
+                this.stairCount = 15;
+                this.rotation = Math.atan(2.5 / 7);
+                this.axis = 0;
+
+                this.asGeom = function () {
+                    // remove the old plane
+                    scene.remove.apply(scene, scene.children);
+                    // create a new one
+                    scene.add(plane);
+                    curvePoints.length = 0;
+                    plane2.position.y = (options.stairCount+0.5) * stepThickness * spaceBetween;
+                    scene.add(plane2);
+
+                    // scene.add(plane2);
+
+                    // stack of boxes
+                    for (i = 0; i < options.stairCount; i++) {
+                        const shape = i % 2 == 0 ? rightShape : leftShape;
+                        const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+                        box = new THREE.Mesh(geometry, material);
+                        cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+                        constructionBox = new THREE.Mesh(constructionCubeGeometry, constructionCubeMaterial);
+                        box.castShadow = true;
+                        cylinder.castShadow = true;
+
+                        box.position.x = -0.5 * radius;
+                        box.position.z = stepWidth;
+                        box.rotation.x = Math.PI * 3 / 2;
+
+                        cylinder.position.x = -0.5 * radius;
+                        cylinder.position.z = (1) * stepWidth;
+                        cylinder.position.y = stepThickness * spaceBetween * 0.5;
+
+                        constructionBox.position.x = -0.45 * radius;
+                        constructionBox.position.z = (1.35) * stepWidth;
+                        constructionBox.position.y = stepThickness * spaceBetween - width;
+                        constructionBox.rotation.y = Math.atan(2.5 / 4);
+
+                        step = new THREE.Object3D();
+                        step.add(box);
+                        step.add(cylinder);
+                        step.add(constructionBox);
+
+                        // var frameGeometry = new THREE.CubeGeometry(2*radius, stepThickness, 2*stepWidth);
+                        // var frameMaterial = new THREE.MeshBasicMaterial({color: 0xcccccc, wireframe: true})
+                        // frame = new THREE.Mesh(frameGeometry, frameMaterial);
+
+                        // cylinder.position.y = (i+1) * stepThickness *spaceBetween;
+                        // cylinder.rotation.y = Math.atan(2.5 / 7) * i
+
+                        step.position.y = (i + 0.5) * stepThickness * spaceBetween;
+                        step.rotation.y = options.rotation * i + options.axis;
+
+                        scene.add(step);
+                        var vector = new THREE.Vector3(-radius, (i + 0.5) * stepThickness * spaceBetween + 5, stepWidth / 2)
+                        var vector2 = new THREE.Vector3(-radius, (i + 0.5) * stepThickness * spaceBetween - 0.25, stepWidth / 2)
+                        var vector3 = new THREE.Vector3(-0.5 * radius, (i + 0.5) * stepThickness * spaceBetween - 0.25, stepWidth / 2)
+                        var axis = new THREE.Vector3(0, 1, 0);
+                        vector.applyAxisAngle(axis, options.rotation * i + options.axis);
+                        vector2.applyAxisAngle(axis, options.rotation * i + options.axis);
+                        vector3.applyAxisAngle(axis, options.rotation * i + options.axis);
+                        curvePoints.push(vector);
+
+                        const curve = new THREE.SplineCurve3([vector, vector2, vector3]);
+                        const curveGeometry = new THREE.TubeGeometry(curve, 20, 0.25, 8, false);
+                        const curveMesh = new THREE.Mesh(curveGeometry, curveMaterial);
+                        scene.add(curveMesh);
+                    }
+
+                    const curve = new THREE.SplineCurve3(curvePoints);
+                    const curveGeometry = new THREE.TubeGeometry(curve, 20, 0.5, 8, false);
+                    const curveMesh = new THREE.Mesh(curveGeometry, curveMaterial);
+                    scene.add(curveMesh);
+
+                    // add spotlight for the shadows
+                    var spotLight = new THREE.SpotLight(0xffffff);
+                    spotLight.position.set(-40, 60, -10);
+                    spotLight.castShadow = true;
+                    scene.add(spotLight);
+                };
+
+            }
+
+
+            // position and point the camera to the center of the scene
+            camera.position.x = -30;
+            camera.position.y = 40;
+            camera.position.z = 30;
+            camera.lookAt(scene.position);
+
+            // add the output of the renderer to the html element
+            $("#WebGL-output").append(renderer.domElement);
+            var controls = new THREE.TrackballControls(camera, renderer.domElement);
+            const gui = new dat.GUI({ autoPlace: true });
+
+            // Options to be added to the GUI
+
+            gui.add(options, 'stairCount', 2, 30).step(1).onChange(options.asGeom);
+            gui.add(options, 'rotation', 0, 1).onChange(options.asGeom);
+            gui.add(options, 'axis', 0, 5).step(0.1).onChange(options.asGeom);
+            options.asGeom();
+            render();
+
+            function render() {
+                // render
+                renderer.render(scene, camera);
+                requestAnimationFrame(render);
+                controls.update();
+            }
+
+            function loopDraw(){
+                addToScene();
+                render();
+            }
+
+        });
+
+
+
+    </script>
+</body>
+
+</html>
