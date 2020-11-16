@@ -82,25 +82,25 @@
             var step, box, i, cylinder;
 
             // stairs
-            const rightShape = new THREE.Shape();
-            rightShape.moveTo(0, 0);
-            rightShape.lineTo(radius * 0.5, 0);
-            rightShape.lineTo(radius * 0.5, smallerWidth);
-            rightShape.lineTo(radius * 0.5 / 2, smallerWidth + (biggerWidth - smallerWidth) * 0.1);
-            rightShape.lineTo(0, smallerWidth + (biggerWidth - smallerWidth) * 0.4);
-            rightShape.lineTo(radius * -0.5, biggerWidth);
-            rightShape.lineTo(radius * -0.5, 0);
-            rightShape.lineTo(0, 0);
+            // const rightShape = new THREE.Shape();
+            // rightShape.moveTo(0, 0);
+            // rightShape.lineTo(radius * 0.5, 0);
+            // rightShape.lineTo(radius * 0.5, smallerWidth);
+            // rightShape.quadraticCurveTo(0, smallerWidth / 2, 0, biggerWidth - smallerWidth / 2)
+            // rightShape.quadraticCurveTo(-radius * 0.5, biggerWidth, -radius*0.5, biggerWidth)
+            // rightShape.lineTo(radius * -0.5, smallerWidth);
+            // rightShape.lineTo(radius * -0.5, 0);
+            // rightShape.lineTo(0, 0);
 
-            const leftShape = new THREE.Shape();
-            leftShape.moveTo(0, 0);
-            leftShape.lineTo(radius * 0.5, 0);
-            leftShape.lineTo(radius * 0.5, biggerWidth);
-            leftShape.lineTo(radius * 0.5 / 2, biggerWidth - (biggerWidth - smallerWidth) * 0.1);
-            leftShape.lineTo(0, biggerWidth - (biggerWidth - smallerWidth) * 0.4);
-            leftShape.lineTo(radius * -0.5, smallerWidth);
-            leftShape.lineTo(radius * -0.5, 0);
-            leftShape.lineTo(0, 0);
+            const stairShape = new THREE.Shape();
+            stairShape.moveTo(0, 0);
+            stairShape.lineTo(radius * 0.5, 0);
+            stairShape.lineTo(radius * 0.5, biggerWidth/2);
+            stairShape.quadraticCurveTo(0, biggerWidth,  0, biggerWidth - smallerWidth/2)
+            stairShape.quadraticCurveTo(0, smallerWidth/2,  -radius * 0.5, smallerWidth)
+            stairShape.lineTo(radius * -0.5, smallerWidth);
+            stairShape.lineTo(radius * -0.5, 0);
+            stairShape.lineTo(0, 0);
 
             const extrudeSettings = {
                 steps: 2,
@@ -115,45 +115,49 @@
 
             const material = new THREE.MeshLambertMaterial({ color: "rgb(186, 140, 48)" });
 
-            //constructions
-            const width = 0.5;
-            const cubeThickness = 0.75;
-
-            const cubeGeometry = new THREE.CubeGeometry(radius, stepThickness, stepWidth);
-            const cubeMaterial = new THREE.MeshLambertMaterial({ color: "brown" });
-            const cylinderGeometry = new THREE.CylinderGeometry(width, width, stepThickness* spaceBetween - 0.01, 32);
-            const cylinderMaterial = new THREE.MeshBasicMaterial({ color: "rgb(125, 115, 122)" });
-            const constructionCubeGeometry = new THREE.CubeGeometry(width, cubeThickness, stepWidth - 0.2);
-            const constructionCubeMaterial = new THREE.MeshLambertMaterial({ color: "rgb(125, 115, 122)" });
-
-            const curveMaterial = new THREE.MeshPhongMaterial({ color: "rgb(125, 115, 122)" });
-
-            const curvePoints = [new THREE.Vector3(-radius, (0.5) * stepThickness * spaceBetween + 5, stepWidth / 2 - 2)];
-
-            cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-            constructionBox = new THREE.Mesh(constructionCubeGeometry, constructionCubeMaterial);
-            cylinder.position.x = -0.5 * radius;
-            cylinder.position.z = (0.3) * stepWidth;
-            cylinder.position.y = stepThickness * 0.5 - 0.2;
-
-            constructionBox.position.x = -0.51 * radius;
-            constructionBox.position.z = (0.7) * stepWidth;
-            constructionBox.position.y = stepThickness - width;
-            constructionBox.rotation.y = Math.atan(2.5 / 20);
-
             // setup the control gui
             var options = new function () {
 
                 this.stairCount = 15;
                 this.rotation = Math.atan(2.5 / 7);
                 this.axis = 0;
+                this.radius = 10;
 
                 this.asGeom = function () {
+                    //constructions
+                    const width = 0.5;
+                    const cubeThickness = 0.75;
+                    const rad = (options.radius - 10) > 0 ? 10 + (options.radius - 10) / 5 : 10
+                    const rad2 = (options.radius - 10) > 0 ? 10 + (options.radius - 10) / 2 : 10
+                    const radcons = (options.radius - 10) > 0 ? 10 + (options.radius - 10)/0.9 : 10
+                    const radcons2 = (options.radius - 10) > 0 ? 10 + (options.radius - 10) : 10
+
+                    const cubeGeometry = new THREE.CubeGeometry(radius, stepThickness, stepWidth);
+                    const cubeMaterial = new THREE.MeshLambertMaterial({ color: "brown" });
+                    const cylinderGeometry = new THREE.CylinderGeometry(width, width, stepThickness * spaceBetween - 0.01, 32);
+                    const cylinderMaterial = new THREE.MeshBasicMaterial({ color: "rgb(125, 115, 122)" });
+                    const constructionCubeGeometry = new THREE.CubeGeometry(width, cubeThickness, stepWidth * rad2 / 10 - 0.2);
+                    const constructionCubeMaterial = new THREE.MeshLambertMaterial({ color: "rgb(125, 115, 122)" });
+
+                    const curveMaterial = new THREE.MeshPhongMaterial({ color: "rgb(125, 115, 122)" });
+
+                    const curvePoints = [new THREE.Vector3(-radius, (0.5) * stepThickness * spaceBetween + 5, stepWidth / 2 - 2)];
+
+                    cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+                    constructionBox = new THREE.Mesh(constructionCubeGeometry, constructionCubeMaterial);
+                    cylinder.position.x = -0.5 * radius;
+                    cylinder.position.z = (0.3) * stepWidth;
+                    cylinder.position.y = stepThickness * 0.5 - 0.2;
+
                     // remove the old plane
                     scene.remove.apply(scene, scene.children);
                     // create a new one
                     scene.add(plane);
                     curvePoints.length = 0;
+                    var axis = new THREE.Vector3(0, 1, 0);
+                    const startingVec = new THREE.Vector3(-rad2, 0.5 * stepThickness * spaceBetween + 5, stepWidth / 2 - 2);
+                    startingVec.applyAxisAngle(axis, options.axis);
+                    curvePoints.push(startingVec)
                     plane2.position.y = (options.stairCount+0.5) * stepThickness * spaceBetween;
                     scene.add(plane2);
 
@@ -161,7 +165,7 @@
 
                     // stack of boxes
                     for (i = 0; i < options.stairCount; i++) {
-                        const shape = i % 2 == 0 ? rightShape : leftShape;
+                        const shape = stairShape;
                         const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
                         box = new THREE.Mesh(geometry, material);
                         cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
@@ -169,18 +173,21 @@
                         box.castShadow = true;
                         cylinder.castShadow = true;
 
-                        box.position.x = -0.5 * radius;
+                        box.position.x = -0.5 * options.radius;
                         box.position.z = stepWidth;
                         box.rotation.x = Math.PI * 3 / 2;
+                        if (i % 2 == 0){
+                            box.scale.x = -1
+                        }
 
-                        cylinder.position.x = -0.5 * radius;
+                        cylinder.position.x = -0.5 * options.radius;
                         cylinder.position.z = (1) * stepWidth;
                         cylinder.position.y = stepThickness * spaceBetween * 0.5;
 
-                        constructionBox.position.x = -0.45 * radius;
-                        constructionBox.position.z = (1.35) * stepWidth;
+                        constructionBox.position.x = -0.45 * (radcons);
+                        constructionBox.position.z = stepWidth * ((rad/10)+0.35);
                         constructionBox.position.y = stepThickness * spaceBetween - width;
-                        constructionBox.rotation.y = Math.atan(2.5 / 4);
+                        constructionBox.rotation.y = Math.atan(2.5 / 4)-radcons2/100;
 
                         step = new THREE.Object3D();
                         step.add(box);
@@ -198,14 +205,19 @@
                         step.rotation.y = options.rotation * i + options.axis;
 
                         scene.add(step);
-                        var vector = new THREE.Vector3(-radius, (i + 0.5) * stepThickness * spaceBetween + 5, stepWidth / 2)
-                        var vector2 = new THREE.Vector3(-radius, (i + 0.5) * stepThickness * spaceBetween - 0.25, stepWidth / 2)
-                        var vector3 = new THREE.Vector3(-0.5 * radius, (i + 0.5) * stepThickness * spaceBetween - 0.25, stepWidth / 2)
-                        var axis = new THREE.Vector3(0, 1, 0);
+                        var vector = new THREE.Vector3(-rad2, (i + 0.5) * stepThickness * spaceBetween + 5, stepWidth / 2)
+                        var vector2 = new THREE.Vector3(-rad2, (i + 0.5) * stepThickness * spaceBetween - 0.25, stepWidth / 2)
+                        var vector3 = new THREE.Vector3(-0.5 * radcons2, (i + 0.5) * stepThickness * spaceBetween - 0.25, stepWidth / 2)
+                        var endingVec = new THREE.Vector3(-rad2, (i + 0.5) * stepThickness * spaceBetween + 5, stepWidth / 2 + 2)
+                        
                         vector.applyAxisAngle(axis, options.rotation * i + options.axis);
                         vector2.applyAxisAngle(axis, options.rotation * i + options.axis);
                         vector3.applyAxisAngle(axis, options.rotation * i + options.axis);
                         curvePoints.push(vector);
+                        if (i == options.stairCount - 1) {
+                            endingVec.applyAxisAngle(axis, options.rotation * i + options.axis);
+                            curvePoints.push(endingVec);
+                        }
 
                         const curve = new THREE.SplineCurve3([vector, vector2, vector3]);
                         const curveGeometry = new THREE.TubeGeometry(curve, 20, 0.25, 8, false);
@@ -241,9 +253,10 @@
 
             // Options to be added to the GUI
 
-            gui.add(options, 'stairCount', 2, 30).step(1).onChange(options.asGeom);
-            gui.add(options, 'rotation', 0, 1).onChange(options.asGeom);
-            gui.add(options, 'axis', 0, 5).step(0.1).onChange(options.asGeom);
+            gui.add(options, 'stairCount', 2, 30).name("Stairs Count").step(1).onChange(options.asGeom);
+            gui.add(options, 'rotation', 0, 1).name("Rotation").onChange(options.asGeom);
+            gui.add(options, 'axis', 0, 5).name("Starting Point").step(0.1).onChange(options.asGeom);
+            gui.add(options, 'radius', 10, 25).name("Radius").step(1).onChange(options.asGeom);
             options.asGeom();
             render();
 
